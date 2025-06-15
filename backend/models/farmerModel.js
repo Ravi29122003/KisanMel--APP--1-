@@ -43,6 +43,17 @@ const farmerSchema = new mongoose.Schema({
             type: String,
             enum: ['Drip', 'Sprinkler', 'Canal', 'Rain-fed', 'Other'],
         },
+        cropCycle: {
+            type: String,
+            enum: ['Short Term', 'Medium Term', 'Long Term'],
+            set: function(value) {
+                // Convert any incoming value to the correct format
+                if (value === 'short-term') return 'Short Term';
+                if (value === 'medium-term') return 'Medium Term';
+                if (value === 'long-term') return 'Long Term';
+                return value;
+            }
+        },
     }
 }, { 
     timestamps: true 

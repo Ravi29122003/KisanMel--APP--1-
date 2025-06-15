@@ -102,7 +102,7 @@ const Dashboard = () => {
                       </div>
                       <div className="mt-5">
                         <Link
-                          to="/recommendations"
+                          to={`/recommendations/${user.farmDetails?.pincode || '302001'}`}
                           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-primary-700 bg-primary-100 hover:bg-primary-200"
                         >
                           Get Recommendations

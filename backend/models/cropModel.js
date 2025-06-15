@@ -1,65 +1,56 @@
 const mongoose = require('mongoose');
 
 const cropSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, 'Crop name is required'],
-        unique: true
-    },
-    type: {
-        type: String,
-        required: [true, 'Crop type is required'],
-        enum: ['Cereal', 'Pulse', 'Fiber', 'Cash Crop', 'Vegetable', 'Fruit']
-    },
-    irrigationRequired: {
-        type: String,
-        required: [true, 'Irrigation requirement is required'],
-        enum: ['Low', 'Medium', 'High']
-    },
-    cycleTime: {
-        type: Number,
-        required: [true, 'Cycle time is required'],
-        min: [30, 'Cycle time must be at least 30 days']
-    },
-    idealConditions: {
-        nitrogen: {
-            min: { type: Number, required: true },
-            max: { type: Number, required: true }
-        },
-        phosphorus: {
-            min: { type: Number, required: true },
-            max: { type: Number, required: true }
-        },
-        potassium: {
-            min: { type: Number, required: true },
-            max: { type: Number, required: true }
-        },
-        ph: {
-            min: { type: Number, required: true },
-            max: { type: Number, required: true }
-        }
-    },
-    suitableSeasons: [{
-        type: String,
-        enum: ['Kharif', 'Rabi', 'Zaid']
-    }],
-    waterRequirement: {
+    crop_id: {
         type: String,
         required: true,
-        enum: ['Low', 'Medium', 'High']
+        unique: true
     },
-    temperatureRange: {
-        min: { type: Number, required: true },
-        max: { type: Number, required: true }
+    name: {
+        type: String,
+        required: true
     },
-    yieldPerAcre: {
-        min: { type: Number, required: true },
-        max: { type: Number, required: true }
+    name_hi: {
+        type: String,
+        required: true
     },
-    marketPrice: {
-        min: { type: Number, required: true },
-        max: { type: Number, required: true }
-    }
+    family: {
+        type: String,
+        required: true
+    },
+    scientificName: String,
+    description: String,
+    idealClimate: {
+        minTempC: Number,
+        maxTempC: Number,
+        rainfallMm: Number
+    },
+    idealSoil: {
+        type: {
+            type: [String],
+            required: true
+        },
+        phMin: Number,
+        phMax: Number
+    },
+    npkRequirementKgHa: {
+        n: Number,
+        p: Number,
+        k: Number
+    },
+    waterRequirement: {
+        type: String,
+        enum: ['Very Low', 'Low', 'Medium', 'High']
+    },
+    sowingSeason: [String],
+    expectedYieldPerHectare: String,
+    cropCycle: {
+        type: String,
+        enum: ['Short Term', 'Medium Term', 'Long Term']
+    },
+    estimatedCapitalPerAcre: Number,
+    laborRequirement: Number,
+    imageUrl: String
 }, {
     timestamps: true
 });

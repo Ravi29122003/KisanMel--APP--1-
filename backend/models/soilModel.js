@@ -3,104 +3,49 @@ const mongoose = require('mongoose');
 const soilSchema = new mongoose.Schema({
   pincode: {
     type: String,
-    required: [true, 'Pincode is required'],
-    validate: {
-      validator: function(v) {
-        return /^\d{6}$/.test(v);
-      },
-      message: props => `${props.value} is not a valid 6-digit pincode!`
-    }
+    required: true,
+    unique: true
   },
-  location: {
+  district: {
+    type: String,
+    required: true
+  },
+  state: {
+    type: String,
+    required: true
+  },
+  soilProfile: {
     type: {
       type: String,
-      enum: ['Point'],
-      default: 'Point'
-    },
-    coordinates: {
-      type: [Number], // [longitude, latitude]
-      required: true
-    }
-  },
-  soilType: {
-    type: String,
-    required: [true, 'Soil type is required'],
-    enum: ['Alluvial', 'Black', 'Red', 'Laterite', 'Mountain', 'Desert', 'Saline']
-  },
-  characteristics: {
-    texture: {
-      type: String,
-      required: true,
-      enum: ['Sandy', 'Clayey', 'Loamy', 'Sandy Loam', 'Clay Loam', 'Silt Loam']
-    },
-    color: {
-      type: String,
       required: true
     },
-    drainage: {
-      type: String,
-      required: true,
-      enum: ['Poor', 'Moderate', 'Good', 'Excellent']
+    ph: {
+      type: Number,
+      required: true
     },
     organicMatter: {
       type: String,
-      required: true,
-      enum: ['Low', 'Medium', 'High']
-    }
-  },
-  nutrientContent: {
-    nitrogen: {
-      min: { type: Number, required: true },
-      max: { type: Number, required: true }
-    },
-    phosphorus: {
-      min: { type: Number, required: true },
-      max: { type: Number, required: true }
-    },
-    potassium: {
-      min: { type: Number, required: true },
-      max: { type: Number, required: true }
-    },
-    ph: {
-      min: { type: Number, required: true },
-      max: { type: Number, required: true }
-    }
-  },
-  waterHoldingCapacity: {
-    type: String,
-    required: true,
-    enum: ['Low', 'Medium', 'High']
-  },
-  suitableCrops: [{
-    type: String,
-    required: true
-  }],
-  region: {
-    state: {
-      type: String,
+      enum: ['Low', 'Medium', 'High'],
       required: true
     },
-    district: {
-      type: String,
-      required: true
-    },
-    village: {
-      type: String,
-      required: true
+    npk: {
+      n: Number,
+      p: Number,
+      k: Number
     }
   },
-  lastUpdated: {
-    type: Date,
-    default: Date.now
+  climate: {
+    avgTempC: Number,
+    avgRainfallMm: Number
   }
 }, {
   timestamps: true
 });
 
-// Create index for geospatial queries
-soilSchema.index({ location: '2dsphere' });
 // Create index for pincode queries
 soilSchema.index({ pincode: 1 });
+// Create compound index for district and state
+soilSchema.index({ district: 1, state: 1 });
 
 const Soil = mongoose.model('Soil', soilSchema);
 

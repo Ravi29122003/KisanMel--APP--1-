@@ -4,10 +4,13 @@ const protect = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// All crop routes require authentication
-router.use(protect);
+// Get all crops
+router.get('/', cropController.getAllCrops);
 
-// Get crop recommendations
-router.post('/recommend', cropController.getRecommendations);
+// Get crop by ID
+router.get('/:id', cropController.getCropById);
+
+// Get crop recommendations by pincode (now protected)
+router.get('/recommendations/:pincode', protect, cropController.getCropRecommendations);
 
 module.exports = router; 

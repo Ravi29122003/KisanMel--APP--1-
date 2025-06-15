@@ -98,6 +98,7 @@ const FarmSetup = () => {
     capitalInvestment: '',
     labourCapacity: '',
     irrigationFacility: 'Rain-fed',
+    cropCycle: '',
     location: null,
     plotCoordinates: []
   });
@@ -255,6 +256,25 @@ const FarmSetup = () => {
                       <option value="Canal">Canal</option>
                       <option value="Rain-fed">Rain-fed</option>
                       <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-6">
+                    <label htmlFor="cropCycle" className="block text-sm font-medium text-gray-700">
+                      Crop Cycle
+                    </label>
+                    <select
+                      id="cropCycle"
+                      name="cropCycle"
+                      required
+                      className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                      value={formData.cropCycle}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select crop cycle</option>
+                      <option value="short-term">Short Term (3-4 months)</option>
+                      <option value="medium-term">Medium Term (6-12 months)</option>
+                      <option value="long-term">Long Term (more than 12 months)</option>
                     </select>
                   </div>
 

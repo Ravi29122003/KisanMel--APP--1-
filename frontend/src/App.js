@@ -7,7 +7,7 @@ import Signup from './components/auth/Signup';
 import OTPVerification from './components/auth/OTPVerification';
 import Dashboard from './components/dashboard/Dashboard';
 import FarmSetup from './components/farm-setup/FarmSetup';
-import CropRecommendation from './components/recommendation/CropRecommendation';
+import CropRecommendationScreen from './screens/CropRecommendationScreen';
 
 function App() {
   return (
@@ -38,10 +38,10 @@ function App() {
               }
             />
             <Route
-              path="/recommendations"
+              path="/recommendations/:pincode"
               element={
                 <PrivateRoute>
-                  <CropRecommendation />
+                  <CropRecommendationScreen />
                 </PrivateRoute>
               }
             />
