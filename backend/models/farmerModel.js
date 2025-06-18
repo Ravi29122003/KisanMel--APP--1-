@@ -54,6 +54,7 @@ const farmerSchema = new mongoose.Schema({
                 return value;
             }
         },
+        plotCoordinates: { type: [[Number]], default: [] }
     }
 }, { 
     timestamps: true 

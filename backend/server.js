@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -24,6 +25,18 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/kisan-mel
 // Routes (to be implemented)
 app.use('/api/v1/users', require('./routes/userRoutes'));
 app.use('/api/v1/crops', require('./routes/cropRoutes'));
+
+// AFTER routes and before error handling
+if (process.env.NODE_ENV === 'production') {
+    // Serve static files from React app
+    const buildPath = path.resolve(__dirname, '../frontend/build');
+    app.use(express.static(buildPath));
+
+    // Handle React routing, return all requests to React app
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(buildPath, 'index.html'));
+    });
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {
