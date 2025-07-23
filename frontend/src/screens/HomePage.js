@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom'; // Import Link for navigation
 import KisanMelLogo from '../components/auth/KISANMEL LOGO WHITE.png';
 import EmpowerFarmerIcon from '../Images/EmpowerFarmer.png'; // Re-adding the import for EmpowerFarmer.png
@@ -6,8 +6,17 @@ import MaximizeYieldIcon from '../Images/MaximizeYield.png'; // Import MaximizeY
 import TransformAgricultureIcon from '../Images/FarmerImage.png'; // Import FarmerImage.png
 import Navbar from '../components/Navbar.tsx'; // Added .tsx extension
 import HeroFarmland from '../Images/hero-farmland.jpg';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+import { LightBulbIcon, ChartBarIcon, DevicePhoneMobileIcon, BookOpenIcon, UsersIcon, BanknotesIcon } from '@heroicons/react/24/outline';
 
 const HomePage = () => {
+
+  // Initialise AOS on mount
+  useEffect(() => {
+    AOS.init({ duration: 600, easing: 'ease-out', once: true });
+  }, []);
+
   return (
     <div className="min-h-screen bg-soft-off-white font-sans antialiased text-text-dark">
       {/* Navigation Bar */}
@@ -19,10 +28,10 @@ const HomePage = () => {
         <img
           src={HeroFarmland}
           alt="Farmland background"
-          className="absolute inset-0 w-full h-full object-cover object-center brightness-75"
+          className="absolute inset-0 w-full h-full object-cover object-center brightness-85"
         />
         {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-soft-off-white/90 via-soft-off-white/80 to-soft-off-white"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-soft-off-white/60 via-white/40 to-transparent"></div>
 
         {/* Decorative wave */}
         <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none rotate-180">
@@ -40,20 +49,22 @@ const HomePage = () => {
           <img
             src={KisanMelLogo}
             alt="Kisan Mel Logo"
-            className="w-48 md:w-60 mx-auto mb-4 drop-shadow-md"
+            className="w-56 md:w-72 lg:w-80 mx-auto mb-8 drop-shadow-md"
+            data-aos="fade-up"
           />
-          <p className="text-lg md:text-xl text-kisan-header-green font-medium">Sahi Ugayen • Sahi Kamayen</p>
 
           {/* CTA buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10" data-aos="fade-up" data-aos-delay="150">
             <Link
               to="/services"
-              className="bg-kisan-green text-white px-8 py-3 rounded-full font-semibold hover:bg-dashboard-accent-green transition-shadow shadow-md hover:shadow-lg"
+              className="group bg-brand-primary text-white px-8 py-3 rounded-full font-semibold hover:bg-dashboard-accent-green transition-shadow shadow-md hover:shadow-lg inline-flex items-center gap-2"
             >
               Explore Services
+              <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7"></path></svg>
             </Link>
-            <button className="bg-dark-brown text-white px-8 py-3 rounded-full font-semibold hover:bg-[#2c1a13] transition-shadow shadow-md hover:shadow-lg">
+            <button className="group bg-dark-brown text-white px-8 py-3 rounded-full font-semibold hover:bg-[#2c1a13] transition-shadow shadow-md hover:shadow-lg inline-flex items-center gap-2">
               See Our Work
+              <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7"></path></svg>
             </button>
           </div>
         </div>
@@ -104,36 +115,74 @@ const HomePage = () => {
               {
                 title: 'Smart Crop Recommendations',
                 desc: 'AI-powered suggestions tailored to your soil, climate & resources',
+                icon: LightBulbIcon,
+                link: '/services',
+                accent: 'bg-brand-primary',
+                text: 'text-brand-primary',
               },
               {
                 title: 'Market Price Insights',
                 desc: 'Up-to-date mandi rates to help you sell at the right time & place',
+                icon: ChartBarIcon,
+                link: '/services',
+                accent: 'bg-brand-accent',
+                text: 'text-brand-accent',
               },
               {
                 title: 'IoT Farm Monitoring',
-                desc: 'Connect sensors & get real-time alerts on moisture, weather and more',
+                desc: 'Connect sensors & get real-time alerts on moisture, weather & more',
+                icon: DevicePhoneMobileIcon,
+                link: '/services',
+                accent: 'bg-brand-primary',
+                text: 'text-brand-primary',
               },
               {
                 title: 'Training & Guides',
-                desc: 'Easy to follow tutorials & videos in local languages',
+                desc: 'Easy-to-follow tutorials & videos in local languages',
+                icon: BookOpenIcon,
+                link: '/services',
+                accent: 'bg-brand-accent',
+                text: 'text-brand-accent',
               },
               {
                 title: 'Agri-Support Community',
-                desc: 'Ask questions & share experiences with fellow farmers and experts',
+                desc: 'Ask questions & share experiences with fellow farmers & experts',
+                icon: UsersIcon,
+                link: '/services',
+                accent: 'bg-brand-primary',
+                text: 'text-brand-primary',
               },
               {
                 title: 'Government Scheme Updates',
                 desc: 'Stay informed about the latest subsidies & policies',
+                icon: BanknotesIcon,
+                link: '/services',
+                accent: 'bg-brand-accent',
+                text: 'text-brand-accent',
               },
-            ].map((card, idx) => (
-              <div
-                key={idx}
-                className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 p-6 flex flex-col"
-              >
-                <h3 className="text-lg font-semibold text-dashboard-accent-green mb-2">{card.title}</h3>
-                <p className="text-gray-600 flex-grow">{card.desc}</p>
-              </div>
-            ))}
+            ].map((card, idx) => {
+              const { icon: Icon, accent, text } = card;
+              return (
+                <Link
+                  to={card.link}
+                  key={idx}
+                  className={
+                    'relative group bg-white rounded-2xl shadow-md hover:shadow-lg transform transition-all duration-200 p-6 flex flex-col hover:scale-105'
+                  }
+                >
+                  {/* accent bar */}
+                  <span className={`absolute top-0 left-0 h-1 w-full rounded-t-2xl ${accent}`}></span>
+
+                  <div className="h-12 w-12 mb-4 flex items-center justify-center bg-soft-off-white rounded-xl shadow-inner">
+                    <Icon className={`h-7 w-7 ${text}`} />
+                  </div>
+                  <h3 className="text-lg font-semibold text-dashboard-accent-green mb-2 font-heading">
+                    {card.title}
+                  </h3>
+                  <p className="text-gray-600 flex-grow text-sm">{card.desc}</p>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>

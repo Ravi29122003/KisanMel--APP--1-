@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Bars3Icon as MenuIcon, XMarkIcon as XIcon } from '@heroicons/react/24/outline';
 
@@ -9,25 +9,37 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ isAuthenticated = false, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
+
+  // Toggle small shadow after scrolling a bit
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLoginClick = () => {
     navigate('/login');
   };
 
+  // Animated underline utility classes for desktop
+  const linkClasses =
+    "relative text-navbar-text transition hover:text-brand-primary after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:bg-brand-primary after:w-0 hover:after:w-full after:transition-all after:duration-300";
+
   return (
-    <nav className="backdrop-blur-md bg-soft-off-white/80 border-b border-[#e0e0e0] sticky top-0 z-50 py-3">
+    <nav className={`backdrop-blur-md bg-soft-off-white/80 border-b border-[#e0e0e0] sticky top-0 z-50 py-3 transition-shadow ${scrolled ? 'shadow-sm' : ''}`}>
       <div className="max-w-7xl px-4 mx-auto flex justify-between items-center">
         {/* Left placeholder for balancing layout */}
         <div className="w-10"></div>
 
         {/* Desktop Navigation Links - Centered */} 
         <div className="hidden md:flex space-x-8 items-center mx-auto">
-          <Link to="/" className="text-navbar-text hover:text-kisan-green transition">Home</Link>
-          <Link to="/about" className="text-navbar-text hover:text-kisan-green transition">About Us</Link>
-          <Link to="/services" className="text-navbar-text hover:text-kisan-green transition">Services</Link>
-          <Link to="/projects" className="text-navbar-text hover:text-kisan-green transition">Projects</Link>
-          <Link to="/ideas" className="text-navbar-text hover:text-kisan-green transition">Ideas</Link>
+          <Link to="/" className={linkClasses}>Home</Link>
+          <Link to="/about" className={linkClasses}>About Us</Link>
+          <Link to="/services" className={linkClasses}>Services</Link>
+          <Link to="/projects" className={linkClasses}>Projects</Link>
+          <Link to="/ideas" className={linkClasses}>Ideas</Link>
         </div>
 
         {/* Desktop Auth Button */}
@@ -81,11 +93,11 @@ const Navbar: React.FC<NavbarProps> = ({ isAuthenticated = false, onLogout }) =>
                 Login
               </button>
             )}
-            <Link to="/" className="text-navbar-text hover:text-kisan-green transition">Home</Link>
-            <Link to="/about" className="text-navbar-text hover:text-kisan-green transition">About Us</Link>
-            <Link to="/services" className="text-navbar-text hover:text-kisan-green transition">Services</Link>
-            <Link to="/projects" className="text-navbar-text hover:text-kisan-green transition">Projects</Link>
-            <Link to="/ideas" className="text-navbar-text hover:text-kisan-green transition">Ideas</Link>
+            <Link to="/" className={linkClasses}>Home</Link>
+            <Link to="/about" className={linkClasses}>About Us</Link>
+            <Link to="/services" className={linkClasses}>Services</Link>
+            <Link to="/projects" className={linkClasses}>Projects</Link>
+            <Link to="/ideas" className={linkClasses}>Ideas</Link>
           </div>
         </div>
       )}

@@ -62,14 +62,10 @@ exports.getCropRecommendations = async (req, res) => {
     // Debug: Log the farmer object after fetching
     console.log('Debug: Farmer object fetched:', farmer);
 
-    if (!farmer || !farmer.farmDetails || !farmer.farmDetails.cropCycle) {
-      // Fallback or error if farmer's crop cycle is not found
-      return res.status(400).json({
-        status: 'error',
-        message: `Farmer's crop cycle preference not found. Please complete farm setup.`
-      });
+    let farmerCropCycle = null;
+    if (farmer && farmer.farmDetails && farmer.farmDetails.cropCycle) {
+      farmerCropCycle = farmer.farmDetails.cropCycle;
     }
-    const farmerCropCycle = farmer.farmDetails.cropCycle;
 
     const recommendations = await getCropRecommendations(pincode, farmerCropCycle);
     

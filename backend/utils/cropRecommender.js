@@ -3,9 +3,17 @@ const Crop = require('../models/cropModel');
 
 const getCropRecommendations = async (pincode, farmerCropCycle) => {
   try {
-    // Get soil details for the pincode
-    const soilData = await Soil.findOne({ pincode });
+    // Normalize pincode and log for debugging
+    const normalizedPincode = pincode.toString().trim();
+    console.log(`Debug: Looking up soil data for pincode => '${normalizedPincode}'`);
+
+    // Support both string and numeric representations in DB (just in case)
+    const soilData = await Soil.findOne({ pincode: { $in: [normalizedPincode, Number(normalizedPincode)] } });
+
     if (!soilData) {
+      // Extra debugging information in case of failure
+      const count = await Soil.countDocuments();
+      console.log(`Debug: Soil collection has ${count} documents but none match '${normalizedPincode}'.`);
       throw new Error('No soil data found for this pincode');
     }
 
@@ -26,22 +34,14 @@ const getCropRecommendations = async (pincode, farmerCropCycle) => {
     // For this implementation, I'm modifying the function to accept `farmerCropCycle` directly for testing purposes.
     // In production, this would come from `req.user.farmDetails.cropCycle` after authentication.
 
+    // The farmer's crop cycle is supplied by the caller (cropController) based on the
+    // authenticated farmer profile. No need to redeclare / overwrite it here. Keeping
+    // the original parameter value ensures the recommendation logic respects the
+    // farmer's actual preference.
+
     // For the sake of completing the request, I will assume we can fetch the farmer's cropCycle
     // based on pincode if the soilData doesn't contain it directly. 
     // This is a simplification; ideally, the farmer's cropCycle would be passed directly.
-
-    // Placeholder for farmer's crop cycle. You would replace this with actual fetched data.
-    let farmerCropCycle = null; // Default to null
-    // If you have a way to fetch the farmer based on pincode, you would do it here:
-    // const Farmer = require('../models/farmerModel');
-    // const farmer = await Farmer.findOne({ 'farmDetails.pincode': pincode });
-    // if (farmer && farmer.farmDetails && farmer.farmDetails.cropCycle) {
-    //   farmerCropCycle = farmer.farmDetails.cropCycle;
-    // }
-
-    // For now, let's assume a dummy farmerCropCycle if not found to proceed with logic
-    // This needs to be replaced with actual fetching based on req.user.id in the API endpoint.
-    // For the test script, we will pass a sample crop cycle.
 
     // Mapping for crop cycle terms
     const cropCycleMap = {

@@ -160,7 +160,8 @@ exports.getMe = async (req, res) => {
 // Update user profile
 exports.updateProfile = async (req, res) => {
     try {
-        const updateData = { ...req.body };
+        // Use let so we can optionally set the variable to undefined later
+        let updateData = { ...req.body };
         
         // If location is provided but coordinates are missing, remove the location field
         if (updateData.location && (!updateData.location.coordinates || !updateData.location.coordinates.length)) {

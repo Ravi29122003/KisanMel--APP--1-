@@ -7,17 +7,30 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'soft-off-white': '#FAF9F6',
-        'kisan-green': '#4CAF50',
+        // Brand palette
+        'soft-off-white': '#F8F9FA',
+        'brand-primary': '#2F7D32', // Primary kisan green
+        'brand-accent': '#FFB300', // Mustard accent
+
+        // Aliases preserved for backward-compatibility
+        'kisan-green': '#2F7D32',
+        'kisan-orange': '#FFB300',
+
+        // Other colours
         'dark-brown': '#3E2723',
-        'text-dark': '#222', // General dark text color
-        'navbar-text': '#2E3A59', // Specific dark color for navbar text
-        'box-bg': '#F0FDF4', // Light green/white for the info boxes
-        'kisan-header-green': '#388E3C', // New specific green for headers
-        'kisan-orange': '#FFB300', // For the Book a Free Consultation button
-        'dashboard-accent-green': '#408000', // New green for headings and button hovers
-        'dashboard-button-green': '#237804', // New green for buttons
-        'setup-card-bg': '#f0fff0', // New light green for the setup card
+        'text-dark': '#333333', // Updated neutral text colour
+        'navbar-text': '#2E3A59',
+        'box-bg': '#F0FDF4',
+        'kisan-header-green': '#2F7D32', // Re-align header green to primary
+        'dashboard-accent-green': '#408000',
+        'dashboard-button-green': '#237804',
+        'setup-card-bg': '#f0fff0',
+      },
+      fontFamily: {
+        // Use Inter for general body text
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // Utility class: font-heading -> Poppins
+        heading: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         'fade-in-up': {

@@ -11,6 +11,8 @@ import {
   Squares2X2Icon,
   SunIcon,
   CurrencyRupeeIcon,
+  GlobeAltIcon,
+  DocumentTextIcon,
   CpuChipIcon,
   BookOpenIcon,
   LifebuoyIcon,
@@ -275,12 +277,40 @@ const CropRecommendationScreen = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-[#f7fdf9] md:w-48 px-6 py-4 flex items-center justify-center border-t md:border-t-0 md:border-l border-[#e0e0e0]">
+                  {/* Action Panel */}
+                  <div className="bg-[#f7fdf9] md:w-64 px-4 py-6 flex flex-col h-full border-t md:border-t-0 md:border-l border-[#e0e0e0]">
+                    {/* Buttons area */}
+                    <div className="flex-1 flex flex-col space-y-4">
+                      <button
+                        onClick={() => navigate('/stage/market')}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white text-[#2f722f] text-sm font-medium border border-[#2f722f] rounded-2xl hover:bg-[#e6f4ea] transition"
+                      >
+                        <GlobeAltIcon className="h-4 w-4" />
+                        Market Connect
+                      </button>
+                      <button
+                        onClick={() => navigate('/stage/prices')}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white text-[#2f722f] text-sm font-medium border border-[#2f722f] rounded-2xl hover:bg-[#e6f4ea] transition"
+                      >
+                        <CurrencyRupeeIcon className="h-4 w-4" />
+                        Prices
+                      </button>
+                      <button
+                        onClick={() => navigate('/stage/contracts')}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white text-[#2f722f] text-sm font-medium border border-[#2f722f] rounded-2xl hover:bg-[#e6f4ea] transition"
+                      >
+                        <DocumentTextIcon className="h-4 w-4" />
+                        Contracts
+                      </button>
+                    </div>
+
+                    {/* Save button at bottom */}
                     <button
                       onClick={() => handleSave(rec)}
-                      className="px-4 py-2 bg-[#2f722f] text-white text-sm rounded-2xl hover:bg-[#46a05e] transition"
+                      className="w-full mt-6 px-4 py-2 bg-gradient-to-r from-[#2f722f] to-[#46a05e] text-white text-sm font-semibold rounded-2xl hover:opacity-90 transition disabled:opacity-60"
+                      disabled={!!savedCrops.find(c => c.name === rec.crop.name)}
                     >
-                      {savedCrops.find(c=>c.name===rec.crop.name)?'Saved':'Save to Plan'}
+                      {savedCrops.find(c => c.name === rec.crop.name) ? 'Saved' : 'Save to Plan'}
                     </button>
                   </div>
                 </div>
