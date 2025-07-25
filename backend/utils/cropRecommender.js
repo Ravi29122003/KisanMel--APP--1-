@@ -1,47 +1,33 @@
-const Soil = require('../models/soilModel');
-const Crop = require('../models/cropModel');
+const Soil = require('../models/soil');
+const Crop = require('../models/crop');
 
 const getCropRecommendations = async (pincode, farmerCropCycle) => {
   try {
-    // Normalize pincode and log for debugging
+    // Normalize pincode
     const normalizedPincode = pincode.toString().trim();
-    console.log(`Debug: Looking up soil data for pincode => '${normalizedPincode}'`);
 
     // Support both string and numeric representations in DB (just in case)
-    const soilData = await Soil.findOne({ pincode: { $in: [normalizedPincode, Number(normalizedPincode)] } });
+    const soilData = await Soil.findOne({ pincode: { $in: [normalizedPincode, Number(normalizedPincode)] } }).lean();
 
     if (!soilData) {
-      // Extra debugging information in case of failure
-      const count = await Soil.countDocuments();
-      console.log(`Debug: Soil collection has ${count} documents but none match '${normalizedPincode}'.`);
       throw new Error('No soil data found for this pincode');
     }
 
-    // Get the farmer's farm details for crop cycle
-    // Assuming farmer details are linked to soilData through the application logic, or fetched separately
-    // For this recommendation, we will fetch farmer details based on pincode if necessary, or assume it's part of soilData context
-    // For now, let's assume we get cropCycle from a combined data source or fetch it separately if needed.
-    // In a real application, you'd likely pass the authenticated farmer's ID to get their details.
+    // Extract soil data - handle missing fields gracefully
+    const soilType = soilData.Soil_Type || soilData.soil_type || '';
+    const soilTypeArray = Array.isArray(soilType) ? soilType : 
+                         (typeof soilType === 'string' ? soilType.split(',').map(s => s.trim()) : []);
     
-    // For demonstration, let's assume the user's farm details are accessible from a farmer object. 
-    // Since the request only provides pincode, we'll need to mock or fetch farmer data if not embedded.
-    // As per previous interaction, farmDetails is part of the Farmer model, which is distinct from Soil model.
-    // To keep it simple for testing, let's assume we're passed the full farmer object or just the cropCycle.
-    // Since the prompt specifies 'use this crop cycle from db', we need a way to get the farmer's crop cycle.
+    const nitrogen = soilData.Nitrogen_kg_ha || soilData.nitrogen_kg_ha || 0;
+    const phMin = soilData.Soil_pH_min || soilData.soil_pH_min || 6.0;
+    const phMax = soilData.Soil_pH_max || soilData.soil_pH_max || 7.5;
+    const pMin = soilData.Phosphorus_kg_ha_min || soilData.phosphorus_kg_ha_min || 0;
+    const pMax = soilData.Phosphorus_kg_ha_max || soilData.phosphorus_kg_ha_max || pMin;
     
-    // **IMPORTANT:** In a real scenario, the `getCropRecommendations` function should receive the `farmerId` 
-    // or the `farmer` object directly, so we can access `farmer.farmDetails.cropCycle`.
-    // For this implementation, I'm modifying the function to accept `farmerCropCycle` directly for testing purposes.
-    // In production, this would come from `req.user.farmDetails.cropCycle` after authentication.
-
-    // The farmer's crop cycle is supplied by the caller (cropController) based on the
-    // authenticated farmer profile. No need to redeclare / overwrite it here. Keeping
-    // the original parameter value ensures the recommendation logic respects the
-    // farmer's actual preference.
-
-    // For the sake of completing the request, I will assume we can fetch the farmer's cropCycle
-    // based on pincode if the soilData doesn't contain it directly. 
-    // This is a simplification; ideally, the farmer's cropCycle would be passed directly.
+    // Note: Some soil records may not have Potassium data
+    const kMin = soilData.Potassium_kg_ha_min || soilData.potassium_kg_ha_min || 
+                 soilData.Potassium || soilData.potassium || 100; // Default to moderate value
+    const kMax = soilData.Potassium_kg_ha_max || soilData.potassium_kg_ha_max || kMin;
 
     // Mapping for crop cycle terms
     const cropCycleMap = {
@@ -50,90 +36,169 @@ const getCropRecommendations = async (pincode, farmerCropCycle) => {
       'long-term': 'Long Term',
     };
 
-    // Get all crops
-    let allCrops = await Crop.find({});
-
-    // Log farmerCropCycle and mappedFarmerCropCycle for debugging
-    console.log(`Debug: Farmer's Crop Cycle received: ${farmerCropCycle}`);
+    // Map farmer crop cycle
     let mappedFarmerCropCycle = null;
     if (farmerCropCycle) {
       mappedFarmerCropCycle = cropCycleMap[farmerCropCycle];
-      console.log(`Debug: Mapped Farmer Crop Cycle: ${mappedFarmerCropCycle}`);
     }
 
-    // Filter crops based on farmer's preferred crop cycle
-    if (farmerCropCycle && mappedFarmerCropCycle) { // Ensure both are valid
-        allCrops = allCrops.filter(crop => crop.cropCycle === mappedFarmerCropCycle);
-        console.log(`Debug: Crops after filtering by cycle: ${allCrops.length}`);
-    } else if (farmerCropCycle) { // Case where farmerCropCycle is provided but mapping failed
-        console.log("Debug: Farmer crop cycle provided but no valid mapping found.");
+    // Optimize query: Pre-filter crops at database level by pH compatibility
+    // This significantly reduces the amount of data we need to process
+    const cropQuery = {};
+    
+    // Add pH range filter if we have soil pH data
+    if (phMin && phMax) {
+      cropQuery.$or = [
+        {
+          $and: [
+            { Optimal_pH_Range_min: { $lte: phMax } },
+            { Optimal_pH_Range_max: { $gte: phMin } }
+          ]
+        },
+        {
+          $and: [
+            { optimal_pH_range_min: { $lte: phMax } },
+            { optimal_pH_range_max: { $gte: phMin } }
+          ]
+        },
+        // Include crops with no pH data
+        {
+          $and: [
+            { Optimal_pH_Range_min: { $exists: false } },
+            { optimal_pH_range_min: { $exists: false } }
+          ]
+        }
+      ];
+    }
+
+    // Limit to top 50 crops for processing (significant performance improvement)
+    let allCrops = await Crop.find(cropQuery)
+      .limit(50)
+      .lean();
+
+    // If we get too few results with pH filtering, get more without filtering
+    if (allCrops.length < 20) {
+      allCrops = await Crop.find({}).limit(50).lean();
     }
 
     // Score each crop based on compatibility
     const scoredCrops = allCrops.map(crop => {
       let score = 0;
-      const soilProfile = soilData.soilProfile;
-      const climate = soilData.climate;
+
+      // Handle different field naming conventions for crops
+      const cropName = crop.crop_name || crop.Crop_Name || crop.Crop_name || 'Unknown Crop';
+      const cropVariety = crop.crop_variety || crop.Crop_Variety || '';
+      const cropCategory = crop.crop_category || crop.Crop_Category || '';
+      const idealSoilTypes = crop.ideal_soil_types || crop.Ideal_Soil_Types || '';
+      const cropPhMin = crop.optimal_pH_range_min || crop.Optimal_pH_Range_min || crop.Optimal_pH_range_min || 0;
+      const cropPhMax = crop.optimal_pH_range_max || crop.Optimal_pH_Range_max || crop.Optimal_pH_range_max || 14;
+      const nutrientNPK = crop.nutrient_needs_npk || crop.Nutrient_Needs_NPK || crop.Nutrient_needs_npk || '';
+      const durationMin = crop.crop_duration_days_min || crop.Crop_Duration_days_min || 0;
+      const durationMax = crop.crop_duration_days_max || crop.Crop_Duration_days_max || 0;
+      const sowingMonths = crop.sowing_months || crop.Sowing_Months || '';
+      const expectedYield = crop.expected_yield_per_acre || crop.Expected_Yield_per_Acre || '';
+      
+      // Parse ideal soil types if it's a string
+      const idealSoilTypesArray = Array.isArray(idealSoilTypes) ? idealSoilTypes :
+                                  (typeof idealSoilTypes === 'string' ? 
+                                   idealSoilTypes.split(',').map(s => s.trim()) : []);
+
+      // Determine crop cycle based on duration
+      let cropCycle = 'Medium Term'; // default
+      if (durationMin && durationMax) {
+        const avgDuration = (durationMin + durationMax) / 2;
+        if (avgDuration <= 120) {
+          cropCycle = 'Short Term';
+        } else if (avgDuration <= 365) {
+          cropCycle = 'Medium Term';
+        } else {
+          cropCycle = 'Long Term';
+        }
+      }
 
       // Check soil type compatibility
-      if (crop.idealSoil.type.includes(soilProfile.type)) {
-        score += 3;
+      if (idealSoilTypesArray.length > 0 && soilTypeArray.length > 0) {
+        // Check if any of the crop's ideal soil types match any of the soil types at this location
+        const soilTypeMatch = idealSoilTypesArray.some(idealType => 
+          soilTypeArray.some(soilT => 
+            soilT.toLowerCase().includes(idealType.toLowerCase()) || 
+            idealType.toLowerCase().includes(soilT.toLowerCase())
+          )
+        );
+        if (soilTypeMatch) {
+          score += 3;
+        }
       }
 
       // Check pH compatibility (within range)
-      if (soilProfile.ph >= crop.idealSoil.phMin && soilProfile.ph <= crop.idealSoil.phMax) {
-        score += 2;
-      }
-
-      // Check temperature compatibility
-      if (climate.avgTempC >= crop.idealClimate.minTempC && climate.avgTempC <= crop.idealClimate.maxTempC) {
-        score += 2;
-      }
-
-      // Check rainfall compatibility (within 20% range)
-      const rainfallDiff = Math.abs(climate.avgRainfallMm - crop.idealClimate.rainfallMm) / crop.idealClimate.rainfallMm;
-      if (rainfallDiff <= 0.2) {
-        score += 2;
+      if (cropPhMin && cropPhMax && phMin && phMax) {
+        // Check if pH ranges overlap
+        if (phMin <= cropPhMax && phMax >= cropPhMin) {
+          score += 2;
+        }
       }
 
       // Check NPK compatibility
-      const npkScore = calculateNPKScore(soilProfile.npk, crop.npkRequirementKgHa);
+      const npkScore = calculateNPKScore(
+        { nitrogen, pMin, pMax, kMin, kMax },
+        { nutrient_needs_npk: nutrientNPK }
+      );
       score += npkScore;
 
-      // The crop cycle score is now implicitly handled by filtering, 
-      // but we still include it in compatibility details for display.
+      // Give bonus points for matching crop cycle
       let cropCycleMatch = false;
-      if (farmerCropCycle) {
-        // Now using mappedFarmerCropCycle for consistency
-        if (crop.cropCycle === mappedFarmerCropCycle) {
+      if (farmerCropCycle && mappedFarmerCropCycle) {
+        if (cropCycle === mappedFarmerCropCycle) {
           cropCycleMatch = true;
+          score += 2; // Bonus points for matching farmer's preferred cycle
         }
       }
 
       return {
-        crop,
+        crop: {
+          ...crop,
+          crop_name: cropName,
+          crop_variety: cropVariety,
+          crop_category: cropCategory,
+          cropCycle: cropCycle,
+          sowing_months: sowingMonths,
+          expected_yield_per_acre: expectedYield,
+          crop_duration_days_min: durationMin,
+          crop_duration_days_max: durationMax,
+          nutrient_needs_npk: nutrientNPK
+        },
         score,
         compatibility: {
-          soilType: crop.idealSoil.type.includes(soilProfile.type),
-          ph: soilProfile.ph >= crop.idealSoil.phMin && soilProfile.ph <= crop.idealSoil.phMax,
-          temperature: climate.avgTempC >= crop.idealClimate.minTempC && climate.avgTempC <= crop.idealClimate.maxTempC,
-          rainfall: rainfallDiff <= 0.2,
+          soilType: idealSoilTypesArray.length > 0 && soilTypeArray.length > 0 ? 
+            idealSoilTypesArray.some(idealType => 
+              soilTypeArray.some(soilT => 
+                soilT.toLowerCase().includes(idealType.toLowerCase()) || 
+                idealType.toLowerCase().includes(soilT.toLowerCase())
+              )
+            ) : false,
+          ph: cropPhMin && cropPhMax && phMin && phMax ?
+              (phMin <= cropPhMax && phMax >= cropPhMin) : false,
           npk: npkScore > 0,
           cropCycle: cropCycleMatch
         }
       };
     });
 
-    // Sort by score and get top 5 (or top 3 as per frontend slice)
+    // Sort by score and return top recommendations (limit to 20 for frontend performance)
     const topCrops = scoredCrops
-      .sort((a, b) => b.score - a.score);
-      // The frontend will slice to top 3
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 20);
 
     return {
       pincode,
-      soilProfile: soilData.soilProfile,
-      climate: soilData.climate,
-      farmerCropCycle: farmerCropCycle, // Include farmer's crop cycle in response
+      soilProfile: {
+        type: soilTypeArray,
+        ph: { min: phMin, max: phMax },
+        nitrogen,
+        phosphorus: { min: pMin, max: pMax },
+        potassium: { min: kMin, max: kMax }
+      },
+      farmerCropCycle: farmerCropCycle,
       recommendations: topCrops
     };
 
@@ -143,21 +208,35 @@ const getCropRecommendations = async (pincode, farmerCropCycle) => {
 };
 
 // Helper function to calculate NPK compatibility score
-const calculateNPKScore = (soilNPK, cropNPK) => {
+const calculateNPKScore = (soilNPK, crop) => {
   let score = 0;
   
-  // Check if soil has sufficient NPK (within 20% range)
-  const nDiff = Math.abs(soilNPK.n - cropNPK.n) / cropNPK.n;
-  const pDiff = Math.abs(soilNPK.p - cropNPK.p) / cropNPK.p;
-  const kDiff = Math.abs(soilNPK.k - cropNPK.k) / cropNPK.k;
-
-  if (nDiff <= 0.2) score += 1;
-  if (pDiff <= 0.2) score += 1;
-  if (kDiff <= 0.2) score += 1;
-
+  // Parse NPK requirements from the string format "120:60:40 kg/ha"
+  if (crop.nutrient_needs_npk && typeof crop.nutrient_needs_npk === 'string') {
+    const npkMatch = crop.nutrient_needs_npk.match(/(\d+):(\d+):(\d+)/);
+    if (npkMatch) {
+      const [, nRequired, pRequired, kRequired] = npkMatch.map(Number);
+      
+      // Check nitrogen (allow 0 nitrogen to still get some score if requirement is low)
+      if (nRequired > 0) {
+        if (soilNPK.nitrogen >= nRequired * 0.8) {
+          score += 1;
+        } else if (soilNPK.nitrogen >= nRequired * 0.5) {
+          score += 0.5;
+        }
+      }
+      
+      // Check phosphorus (using average of min and max)
+      const avgPhosphorus = (soilNPK.pMin + soilNPK.pMax) / 2;
+      if (avgPhosphorus >= pRequired * 0.8) score += 1;
+      
+      // Check potassium (using average of min and max)
+      const avgPotassium = (soilNPK.kMin + soilNPK.kMax) / 2;
+      if (avgPotassium >= kRequired * 0.8) score += 1;
+    }
+  }
+  
   return score;
 };
 
-module.exports = {
-  getCropRecommendations
-}; 
+module.exports = { getCropRecommendations }; 

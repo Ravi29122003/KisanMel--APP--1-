@@ -25,6 +25,9 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/kisan-mel
 // Routes (to be implemented)
 app.use('/api/v1/users', require('./routes/userRoutes'));
 app.use('/api/v1/crops', require('./routes/cropRoutes'));
+app.use('/api', require('./routes/recommendRoutes'));
+app.use('/api/v1/farm-logs', require('./routes/farmLogRoutes'));
+app.use('/api/v1/alerts', require('./routes/alertRoutes'));
 
 // AFTER routes and before error handling
 if (process.env.NODE_ENV === 'production') {

@@ -135,7 +135,7 @@ const Stage = () => {
   const [activeItem, setActiveItem] = useState('dashboard');
   const [farmData, setFarmData] = useState(null);
   const [pincode, setPincode] = useState('');
-  const { savedCrops, removeCrop } = React.useContext(PlanContext);
+  const { savedCrops, removeCrop, setActiveCrop } = React.useContext(PlanContext);
 
   // Sidebar navigation definition with icons
   const navItems = [
@@ -175,16 +175,16 @@ const Stage = () => {
     navigate('/');
   };
 
-  const handleNavigation = (item) => {
-    setActiveItem(item.id);
-    if (item.id === 'crops') {
+  const handleNavigation = ({ id, path }) => {
+    setActiveItem(id);
+    if (id === 'crops') {
       if (pincode) {
         navigate(`/recommendations/${pincode}`);
       } else {
         alert('Please set your farm pincode first.');
       }
     } else {
-      navigate(item.path);
+      navigate(path);
     }
   };
 
@@ -199,7 +199,8 @@ const Stage = () => {
     if (n.includes('corn') || n.includes('maize')) return '🌽';
     if (n.includes('sugarcane')) return '🎋';
     if (n.includes('banana')) return '🍌';
-    return '��';
+    if (n.includes('blackgram') || n.includes('black gram') || n.includes('urad') || n.includes('udad')) return '🫘';
+    return '🌱';
   };
 
   return (
@@ -281,29 +282,98 @@ const Stage = () => {
 
           {/* Saved Crops Plan */}
           <div className="mb-8">
-            <h3 className="text-2xl font-bold text-[#1a1a1a] mb-4">My Crop Plan</h3>
+            <h3 className="text-2xl font-bold text-[#1a1a1a] mb-6">My Crop Plan</h3>
             {savedCrops.length === 0 ? (
-              <p className="text-gray-500">No crops added to plan yet.</p>
+              <div className="text-center py-8">
+                <div className="text-6xl mb-4">🌱</div>
+                <p className="text-gray-500 mb-4">No crops added to plan yet.</p>
+                <button
+                  onClick={() => navigate(`/recommendations/${pincode}`)}
+                  className="px-6 py-3 bg-gradient-to-r from-[#2f722f] to-[#46a05e] text-white rounded-2xl font-semibold hover:opacity-90 transition"
+                >
+                  Get Crop Recommendations
+                </button>
+              </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {savedCrops.map((crop) => (
-                  <div key={crop.name} className="relative bg-[#f5fff5] rounded-xl shadow-md p-4 flex flex-col gap-2 transition-transform duration-150 hover:scale-[1.02]">
-                    {/* Remove button */}
-                    <button
-                      onClick={() => removeCrop(crop.name)}
-                      className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm"
-                      aria-label="Remove crop"
-                    >
-                      ✕
-                    </button>
-                    {/* Icon */}
-                    <div className="text-4xl">{cropEmoji(crop.name)}</div>
-                    {/* Name */}
-                    <h4 className="font-semibold text-[#1a1a1a] truncate">{crop.name}</h4>
-                    {/* Score */}
-                    <span className="text-sm font-semibold text-green-700">{crop.score}/12</span>
-                  </div>
-                ))}
+              <div className="space-y-6">
+                 {/* Render every saved crop as a full-size flash card */}
+                 {savedCrops.map((crop, idx) => (
+                   <div
+                     key={crop.name}
+                     className="bg-gradient-to-br from-[#e9f8ee] via-white to-white p-6 rounded-2xl border border-[#d5eddc] relative"
+                   >
+                     {/* Remove button */}
+                     <button
+                       onClick={() => removeCrop(crop.name)}
+                       className="absolute top-4 right-4 text-red-500 hover:text-red-700 text-sm"
+                       aria-label="Remove crop"
+                     >
+                       ✕
+                     </button>
+
+                     <div className="flex flex-col lg:flex-row gap-6">
+                       <div className="flex-1">
+                         <div className="flex items-center gap-3 mb-4">
+                           <div className="text-4xl">{cropEmoji(crop.name)}</div>
+                           <div>
+                             <h4 className="text-xl font-bold text-[#1a1a1a]">
+                               {crop.name} {idx === 0 && '(Active Cultivation)'}
+                             </h4>
+                             <p className="text-sm text-gray-600">Recommended Score: {crop.score}/12</p>
+                           </div>
+                         </div>
+
+                         {/* Crop Snapshot */}
+                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                           <div className="bg-white/60 p-3 rounded-xl">
+                             <p className="text-xs text-gray-500 mb-1">Status</p>
+                             <p className="font-semibold text-blue-600">
+                               {idx === 0 ? 'Ready to Start' : 'Planned'}
+                             </p>
+                           </div>
+                           <div className="bg-white/60 p-3 rounded-xl">
+                             <p className="text-xs text-gray-500 mb-1">Expected Duration</p>
+                             <p className="font-semibold text-[#1a1a1a]">90-120 days</p>
+                           </div>
+                           <div className="bg-white/60 p-3 rounded-xl">
+                             <p className="text-xs text-gray-500 mb-1">Climate Match</p>
+                             <p className="font-semibold text-green-600">Excellent</p>
+                           </div>
+                         </div>
+
+                         {/* Alert about cultivation */}
+                         <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
+                           <div className="flex items-center gap-2 mb-1">
+                             <span className="text-blue-500">ℹ️</span>
+                             <p className="text-sm font-semibold text-blue-800">
+                               {idx === 0 ? 'Ready to Begin Cultivation' : 'Upcoming Cultivation'}
+                             </p>
+                           </div>
+                           <p className="text-sm text-blue-700">
+                             Start your cultivation journey with step-by-step guidance and daily task tracking.
+                           </p>
+                         </div>
+                       </div>
+
+                       {/* Call to Action */}
+                       <div className="lg:w-64 flex flex-col gap-3">
+                         <button
+                           onClick={() => {
+                             if (idx !== 0) setActiveCrop(crop.name);
+                             navigate(`/cultivation-guide/${crop.name}`);
+                           }}
+                           className="w-full px-6 py-4 bg-gradient-to-r from-[#2f722f] to-[#46a05e] text-white rounded-2xl font-semibold hover:opacity-90 transition shadow-lg text-center"
+                         >
+                           <span className="block text-lg mb-1">📋</span>
+                           {idx === 0 ? 'View Cultivation Guide' : 'Start Cultivation'}
+                         </button>
+                         <p className="text-xs text-gray-500 text-center">
+                           Daily tasks, stage tracking & expert guidance
+                         </p>
+                       </div>
+                     </div>
+                   </div>
+                 ))}
               </div>
             )}
           </div>

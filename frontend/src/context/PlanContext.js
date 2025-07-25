@@ -26,8 +26,19 @@ export const PlanProvider = ({ children }) => {
     setSavedCrops((prev) => prev.filter((c) => c.name !== name));
   };
 
+  // Promote a crop to be the active (first) crop
+  const setActiveCrop = (name) => {
+    setSavedCrops((prev) => {
+      const index = prev.findIndex((c) => c.name === name);
+      if (index <= 0) return prev; // already first or not found
+      const selected = prev[index];
+      const newOrder = [selected, ...prev.slice(0, index), ...prev.slice(index + 1)];
+      return newOrder;
+    });
+  };
+
   return (
-    <PlanContext.Provider value={{ savedCrops, addCrop, removeCrop }}>
+    <PlanContext.Provider value={{ savedCrops, addCrop, removeCrop, setActiveCrop }}>
       {children}
     </PlanContext.Provider>
   );

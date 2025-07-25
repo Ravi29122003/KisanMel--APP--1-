@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { API_URL } from '../config';
@@ -16,13 +16,15 @@ import {
   CpuChipIcon,
   BookOpenIcon,
   LifebuoyIcon,
+  ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline';
+import { UserCircleIcon } from '@heroicons/react/24/solid';
 import HeroFarmland from "../Images/hero-farmland.jpg";
 import kisanmelLogo from '../components/auth/KISANMEL LOGO WHITE.png';
 import { PlanContext } from '../context/PlanContext';
 
 const CropRecommendationScreen = () => {
-  const [allRecs, setAllRecs] = useState([]);
+  const [recommendationData, setRecommendationData] = useState(null);
   const [displayCount, setDisplayCount] = useState(3);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -57,26 +59,55 @@ const CropRecommendationScreen = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/');
+  };
+
   useEffect(() => {
-    fetchRecommendations();
+    if (pincode) {
+      fetchRecommendations();
+    }
   }, [pincode]);
 
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = useCallback(async () => {
+    if (!pincode) return;
+    
     try {
       setLoading(true);
-      const response = await axios.get(`${API_URL}/crops/recommendations/${pincode}`);
-      setAllRecs(response.data.data.recommendations);
       setError(null);
+      const response = await axios.get(`${API_URL}/crops/recommendations/${pincode}`);
+      setRecommendationData(response.data.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch recommendations');
+      setRecommendationData(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, [pincode]);
 
   const handleSave = (rec) => {
-    addCrop({ name: rec.crop.name, score: rec.score });
+    addCrop({ name: rec.crop.crop_name, score: rec.score });
   };
+
+  // Always call hooks before any early returns to maintain hook order
+  const { validRecommendations, farmerCropCycle } = useMemo(() => {
+    const allRecommendations = recommendationData?.recommendations || [];
+    const cycle = recommendationData?.farmerCropCycle;
+    
+    // Filter out any recommendations with missing crop data
+    const validRecs = allRecommendations.filter(rec => rec && rec.crop && rec.crop.crop_name);
+    
+    return {
+      validRecommendations: validRecs,
+      farmerCropCycle: cycle
+    };
+  }, [recommendationData]);
+  
+  // Apply display count to valid recommendations
+  const recommendations = useMemo(() => {
+    return validRecommendations.slice(0, displayCount === 'all' ? validRecommendations.length : displayCount);
+  }, [validRecommendations, displayCount]);
 
   if (loading) {
     return (
@@ -99,9 +130,6 @@ const CropRecommendationScreen = () => {
       </div>
     );
   }
-
-  const recommendations = allRecs.slice(0, displayCount === 'all' ? allRecs.length : displayCount);
-  const farmerCropCycle = allRecs?.farmerCropCycle;
 
   return (
     <div className="flex h-screen bg-[#f1f5f4] font-[Inter]">
@@ -127,6 +155,24 @@ const CropRecommendationScreen = () => {
             );
           })}
         </nav>
+
+        {/* User Profile & Logout Section */}
+        <div className="p-4 border-t border-[#e0e0e0] mt-auto flex flex-col gap-4">
+          <div className="flex items-center space-x-3">
+            <UserCircleIcon className="h-10 w-10 text-[#2f722f]" />
+            <div>
+              <p className="font-medium text-[#1a1a1a]">Farmer Name</p>
+              <p className="text-sm text-[#2f722f] cursor-pointer hover:text-[#46a05e] transition-colors">View Profile</p>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 text-red-700 rounded-2xl hover:bg-red-600/20 transition-all duration-200 shadow-sm font-medium"
+          >
+            <ArrowRightOnRectangleIcon className="h-5 w-5" />
+            <span>Logout</span>
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
@@ -183,39 +229,58 @@ const CropRecommendationScreen = () => {
                 >
                   <div className="p-6 flex-1">
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-semibold text-[#1a1a1a]">{rec.crop.name}</h2>
-                      <span className="text-sm text-gray-500">{rec.crop.name_hi}</span>
+                      <h2 className="text-xl font-semibold text-[#1a1a1a]">{rec.crop.crop_name}</h2>
+                      <span className="text-sm text-gray-500">{rec.crop.crop_variety || 'Standard'}</span>
                     </div>
                     
                     <div className="mb-4">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Compatibility Score</span>
-                        <span className="text-lg font-semibold text-green-600">{rec.score}/12</span>
+                        <span className="text-lg font-semibold text-green-600">{rec.score}/10</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
                         <div 
                           className="bg-green-600 h-2.5 rounded-full" 
-                          style={{ width: `${(rec.score / 12) * 100}%` }}
+                          style={{ width: `${(rec.score / 10) * 100}%` }}
                         ></div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Category:</span>
+                        <span className="text-gray-900">{rec.crop.crop_category || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Duration:</span>
+                        <span className="text-gray-900">
+                          {rec.crop.crop_duration_days_min && rec.crop.crop_duration_days_max 
+                            ? `${rec.crop.crop_duration_days_min}-${rec.crop.crop_duration_days_max} days` 
+                            : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Sowing Months:</span>
+                        <span className="text-gray-900">{rec.crop.sowing_months || 'N/A'}</span>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-3 gap-3 mb-3">
                       <div>
-                        <h3 className="text-sm font-medium text-gray-900">Family</h3>
-                        <p className="mt-1 text-sm text-gray-600">{rec.crop.family}</p>
+                        <h3 className="text-sm font-medium text-gray-900">Part Used</h3>
+                        <p className="mt-1 text-sm text-gray-600">{rec.crop.Part_Used || rec.crop.part_used || 'N/A'}</p>
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium text-gray-900">Water Requirement</h3>
-                        <p className="mt-1 text-sm text-gray-600">{rec.crop.waterRequirement}</p>
+                        <h3 className="text-sm font-medium text-gray-900">Industry Demand</h3>
+                        <p className="mt-1 text-sm text-gray-600">{rec.crop.Industry_Demand || rec.crop.industry_demand || 'N/A'}</p>
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium text-gray-900">Sowing Season</h3>
-                        <p className="mt-1 text-sm text-gray-600">{rec.crop.sowingSeason.join(', ')}</p>
+                        <h3 className="text-sm font-medium text-gray-900">Sowing Months</h3>
+                        <p className="mt-1 text-sm text-gray-600">{rec.crop.sowing_months || rec.crop.Sowing_Months || 'N/A'}</p>
                       </div>
                       <div>
                         <h3 className="text-sm font-medium text-gray-900">Expected Yield</h3>
-                        <p className="mt-1 text-sm text-gray-600">{rec.crop.expectedYieldPerHectare}</p>
+                        <p className="mt-1 text-sm text-gray-600">{rec.crop.expected_yield_per_acre || rec.crop.Expected_Yield_per_Acre || 'N/A'}</p>
                       </div>
                       <div>
                         <h3 className="text-sm font-medium text-gray-900">Crop Cycle</h3>
@@ -225,7 +290,7 @@ const CropRecommendationScreen = () => {
 
                     <div className="border-t border-gray-200 pt-4">
                       <h3 className="text-sm font-medium text-gray-900 mb-2">Compatibility Factors</h3>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         <div className="flex items-center">
                           {rec.compatibility.soilType ? (
                             <CheckCircleIcon className="h-4 w-4 text-green-600 mr-1" />
@@ -241,22 +306,6 @@ const CropRecommendationScreen = () => {
                             <XCircleIcon className="h-4 w-4 text-red-600 mr-1" />
                           )}
                           <span className="text-sm text-gray-600">pH Level</span>
-                        </div>
-                        <div className="flex items-center">
-                          {rec.compatibility.temperature ? (
-                            <CheckCircleIcon className="h-4 w-4 text-green-600 mr-1" />
-                          ) : (
-                            <XCircleIcon className="h-4 w-4 text-red-600 mr-1" />
-                          )}
-                          <span className="text-sm text-gray-600">Temperature</span>
-                        </div>
-                        <div className="flex items-center">
-                          {rec.compatibility.rainfall ? (
-                            <CheckCircleIcon className="h-4 w-4 text-green-600 mr-1" />
-                          ) : (
-                            <XCircleIcon className="h-4 w-4 text-red-600 mr-1" />
-                          )}
-                          <span className="text-sm text-gray-600">Rainfall</span>
                         </div>
                         <div className="flex items-center">
                           {rec.compatibility.npk ? (
@@ -308,9 +357,9 @@ const CropRecommendationScreen = () => {
                     <button
                       onClick={() => handleSave(rec)}
                       className="w-full mt-6 px-4 py-2 bg-gradient-to-r from-[#2f722f] to-[#46a05e] text-white text-sm font-semibold rounded-2xl hover:opacity-90 transition disabled:opacity-60"
-                      disabled={!!savedCrops.find(c => c.name === rec.crop.name)}
+                      disabled={!!savedCrops.find(c => c.name === rec.crop.crop_name)}
                     >
-                      {savedCrops.find(c => c.name === rec.crop.name) ? 'Saved' : 'Save to Plan'}
+                      {savedCrops.find(c => c.name === rec.crop.crop_name) ? 'Saved' : 'Save to Plan'}
                     </button>
                   </div>
                 </div>

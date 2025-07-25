@@ -1,4 +1,4 @@
-const Crop = require('../models/cropModel');
+const Crop = require('../models/crop');
 const { getCropRecommendations } = require('../utils/cropRecommender');
 const Farmer = require('../models/farmerModel');
 
@@ -46,9 +46,6 @@ exports.getCropRecommendations = async (req, res) => {
   try {
     const { pincode } = req.params;
     
-    // Debug: Log req.user to check if it's populated
-    console.log('Debug: req.user in getCropRecommendations:', req.user);
-
     if (!pincode) {
       return res.status(400).json({
         status: 'error',
@@ -57,10 +54,7 @@ exports.getCropRecommendations = async (req, res) => {
     }
 
     // Fetch the farmer to get their crop cycle preference
-    const farmer = await Farmer.findById(req.user.id);
-
-    // Debug: Log the farmer object after fetching
-    console.log('Debug: Farmer object fetched:', farmer);
+    const farmer = await Farmer.findById(req.user.id).select('farmDetails.cropCycle').lean();
 
     let farmerCropCycle = null;
     if (farmer && farmer.farmDetails && farmer.farmDetails.cropCycle) {
