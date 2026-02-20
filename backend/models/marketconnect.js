@@ -175,6 +175,10 @@ MarketconnectSchema.index({ 'location.district': 1, 'location.state': 1 });
 MarketconnectSchema.index({ industry_demand: 1, status: 1 });
 MarketconnectSchema.index({ listed_on: -1, status: 1 });
 
+// Enhanced indexes for crop contract matching
+MarketconnectSchema.index({ crop: 1, status: 1, price_per_kg: -1 }); // For efficient crop-specific contract queries
+MarketconnectSchema.index({ crop: 'text', status: 1 }); // For fuzzy crop name matching
+
 // Text index for search functionality
 MarketconnectSchema.index({
   crop: 'text',

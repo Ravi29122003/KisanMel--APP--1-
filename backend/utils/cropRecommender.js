@@ -29,18 +29,9 @@ const getCropRecommendations = async (pincode, farmerCropCycle) => {
                  soilData.Potassium || soilData.potassium || 100; // Default to moderate value
     const kMax = soilData.Potassium_kg_ha_max || soilData.potassium_kg_ha_max || kMin;
 
-    // Mapping for crop cycle terms
-    const cropCycleMap = {
-      'short-term': 'Short Term',
-      'medium-term': 'Medium Term',
-      'long-term': 'Long Term',
-    };
-
-    // Map farmer crop cycle
-    let mappedFarmerCropCycle = null;
-    if (farmerCropCycle) {
-      mappedFarmerCropCycle = cropCycleMap[farmerCropCycle];
-    }
+    // farmerCropCycle from DB is already 'Short Term' / 'Medium Term' / 'Long Term'
+    // (converted by the setter in farmerModel.js) — use it directly
+    const mappedFarmerCropCycle = farmerCropCycle || null;
 
     // Optimize query: Pre-filter crops at database level by pH compatibility
     // This significantly reduces the amount of data we need to process
@@ -71,14 +62,14 @@ const getCropRecommendations = async (pincode, farmerCropCycle) => {
       ];
     }
 
-    // Limit to top 50 crops for processing (significant performance improvement)
+    // Fetch up to 200 crops with pH pre-filter, fall back to 200 unfiltered
     let allCrops = await Crop.find(cropQuery)
-      .limit(50)
+      .limit(200)
       .lean();
 
     // If we get too few results with pH filtering, get more without filtering
     if (allCrops.length < 20) {
-      allCrops = await Crop.find({}).limit(50).lean();
+      allCrops = await Crop.find({}).limit(200).lean();
     }
 
     // Score each crop based on compatibility

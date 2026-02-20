@@ -11,16 +11,39 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true
+}));
 app.use(express.json());
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/kisan-mel', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/kisan-mel';
+
+mongoose.connect(MONGODB_URI, {
+    serverSelectionTimeoutMS: 10000, // 10 seconds timeout for server selection
+    socketTimeoutMS: 45000, // 45 seconds timeout for socket operations
+    connectTimeoutMS: 10000, // 10 seconds timeout for initial connection
+    retryWrites: true,
+    retryReads: true
 })
-.then(() => console.log('Connected to MongoDB'))
-.catch((err) => console.error('MongoDB connection error:', err));
+.then(() => {
+    console.log('✅ Connected to MongoDB successfully');
+    console.log(`📊 Database: ${mongoose.connection.name}`);
+})
+.catch((err) => {
+    console.error('❌ MongoDB connection error:', err.message);
+    console.error('\n🔧 Troubleshooting steps:');
+    console.error('1. Check your internet connection');
+    console.error('2. Verify MongoDB Atlas cluster is running (not paused)');
+    console.error('3. Check if your IP is whitelisted in MongoDB Atlas Network Access');
+    console.error('4. Verify the MONGODB_URI connection string format:');
+    console.error('   mongodb+srv://username:password@cluster.mongodb.net/database-name');
+    console.error('5. Try using a standard connection string instead of SRV:');
+    console.error('   mongodb://username:password@cluster-shard-00-00.mongodb.net:27017/database-name');
+    console.error('6. Check DNS resolution - try: nslookup cluster0.tjryvzk.mongodb.net');
+    process.exit(1);
+});
 
 // Routes (to be implemented)
 app.use('/api/v1/users', require('./routes/userRoutes'));
@@ -28,6 +51,7 @@ app.use('/api/v1/crops', require('./routes/cropRoutes'));
 app.use('/api', require('./routes/recommendRoutes'));
 app.use('/api/v1/farm-logs', require('./routes/farmLogRoutes'));
 app.use('/api/v1/alerts', require('./routes/alertRoutes'));
+app.use('/api/market', require('./routes/marketRoutes'));
 
 // AFTER routes and before error handling
 if (process.env.NODE_ENV === 'production') {

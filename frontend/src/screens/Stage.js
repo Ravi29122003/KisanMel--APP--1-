@@ -141,7 +141,7 @@ const Stage = () => {
   const navItems = [
     { id: 'dashboard', name: 'Dashboard', path: '/stage', Icon: Squares2X2Icon },
     { id: 'crops', name: 'Crop Suggestions', path: '/recommendations', Icon: SunIcon },
-    { id: 'market', name: 'Market Rates', path: '/stage/market', Icon: CurrencyRupeeIcon },
+    { id: 'market', name: 'Market Rates', path: '/market', Icon: CurrencyRupeeIcon },
     { id: 'iot', name: 'IoT Monitoring', path: '/stage/iot', Icon: CpuChipIcon },
     { id: 'training', name: 'Training & Guides', path: '/stage/training', Icon: BookOpenIcon },
     { id: 'support', name: 'Support', path: '/stage/support', Icon: LifebuoyIcon },
@@ -250,10 +250,10 @@ const Stage = () => {
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 text-red-700 rounded-2xl hover:bg-red-600/20 transition-all duration-200 shadow-sm"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-2xl hover:bg-red-100 transition-all duration-200 font-medium"
           >
             <ArrowRightOnRectangleIcon className="h-5 w-5" />
-            <span className="font-medium">Logout</span>
+            <span>Logout</span>
           </button>
         </div>
       </aside>

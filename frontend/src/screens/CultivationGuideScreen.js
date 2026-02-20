@@ -76,11 +76,13 @@ import {
 } from '@heroicons/react/24/outline';
 import { UserCircleIcon } from '@heroicons/react/24/solid';
 import kisanmelLogo from '../components/auth/KISANMEL LOGO WHITE.png';
+import { useAuth } from '../context/AuthContext';
 
 const CultivationGuideScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { cropName } = useParams();
+  const { logout, user } = useAuth();
   const [activeItem, setActiveItem] = useState('cultivation');
   const [selectedStage, setSelectedStage] = useState(null);
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
@@ -91,6 +93,51 @@ const CultivationGuideScreen = () => {
   const [showTaskDetail, setShowTaskDetail] = useState(false);
   const [activeGuideTab, setActiveGuideTab] = useState('text'); // 'text' or 'video'
   const [showFarmLog, setShowFarmLog] = useState(false);
+  const [sowingDate, setSowingDate] = useState(new Date());
+  const [harvestDate, setHarvestDate] = useState(null);
+
+  // Fetch crop data and calculate harvest date
+  useEffect(() => {
+    const fetchCropData = async () => {
+      try {
+        // Try to fetch crop data from backend
+        const response = await axios.get(`http://localhost:5000/api/crops/search?crop_name=${cropName || 'Rice'}`);
+        if (response.data && response.data.length > 0) {
+          const crop = response.data[0];
+          const avgDuration = crop.crop_duration_days_min && crop.crop_duration_days_max 
+            ? (crop.crop_duration_days_min + crop.crop_duration_days_max) / 2
+            : 150; // Default fallback
+          
+          const calculatedHarvestDate = new Date(sowingDate);
+          calculatedHarvestDate.setDate(calculatedHarvestDate.getDate() + avgDuration);
+          setHarvestDate(calculatedHarvestDate);
+        } else {
+          // Fallback to default duration
+          const calculatedHarvestDate = new Date(sowingDate);
+          calculatedHarvestDate.setDate(calculatedHarvestDate.getDate() + 150);
+          setHarvestDate(calculatedHarvestDate);
+        }
+      } catch (error) {
+        console.log('Using default crop duration:', error.message);
+        // Fallback to default duration if API call fails
+        const calculatedHarvestDate = new Date(sowingDate);
+        calculatedHarvestDate.setDate(calculatedHarvestDate.getDate() + 150);
+        setHarvestDate(calculatedHarvestDate);
+      }
+    };
+
+    fetchCropData();
+  }, [sowingDate, cropName]);
+
+  // Format date for display
+  const formatDate = (date) => {
+    if (!date) return '';
+    return date.toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
 
      // Sample crop stages data
    const cropStages = [
@@ -277,7 +324,7 @@ const CultivationGuideScreen = () => {
   const navItems = [
     { id: 'dashboard', name: 'Dashboard', path: '/stage', Icon: Squares2X2Icon },
     { id: 'crops', name: 'Crop Suggestions', path: '/recommendations', Icon: SunIcon },
-    { id: 'market', name: 'Market Rates', path: '/stage/market', Icon: CurrencyRupeeIcon },
+    { id: 'market', name: 'Market Rates', path: '/market', Icon: CurrencyRupeeIcon },
     { id: 'iot', name: 'IoT Monitoring', path: '/stage/iot', Icon: CpuChipIcon },
     { id: 'training', name: 'Training & Guides', path: '/stage/training', Icon: BookOpenIcon },
     { id: 'support', name: 'Support', path: '/stage/support', Icon: LifebuoyIcon },
@@ -316,7 +363,7 @@ const CultivationGuideScreen = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    logout();
     navigate('/');
   };
 
@@ -431,7 +478,7 @@ const CultivationGuideScreen = () => {
           <div className="flex items-center space-x-3">
             <UserCircleIcon className="h-10 w-10 text-[#2f722f]" />
             <div>
-              <p className="font-medium text-[#1a1a1a]">Farmer Name</p>
+              <p className="font-medium text-[#1a1a1a]">{user?.name || 'Farmer'}</p>
               <p className="text-sm text-[#2f722f] cursor-pointer hover:text-[#46a05e] transition-colors">View Profile</p>
             </div>
           </div>
@@ -491,14 +538,14 @@ const CultivationGuideScreen = () => {
                                               <CalendarDaysIcon className="h-5 w-5 text-[#2f722f]" />
                        <div>
                          <p className="text-xs text-gray-500 font-medium">Sowing Date</p>
-                         <p className="font-bold text-[#1a1a1a]">25 June 2025</p>
+                         <p className="font-bold text-[#1a1a1a]">{formatDate(sowingDate)}</p>
                        </div>
                      </div>
                      <div className="flex items-center gap-2 bg-white/60 px-4 py-3 rounded-xl backdrop-blur-sm border border-white/40">
                                               <SunIcon className="h-5 w-5 text-[#2f722f]" />
                        <div>
                          <p className="text-xs text-gray-500 font-medium">Expected Harvest</p>
-                         <p className="font-bold text-[#1a1a1a]">22 September 2025</p>
+                         <p className="font-bold text-[#1a1a1a]">{formatDate(harvestDate)}</p>
                        </div>
                      </div>
                      <div className="flex items-center gap-2 bg-white/60 px-4 py-3 rounded-xl backdrop-blur-sm border border-white/40">

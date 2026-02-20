@@ -22,6 +22,7 @@ import { UserCircleIcon } from '@heroicons/react/24/solid';
 import HeroFarmland from "../Images/hero-farmland.jpg";
 import kisanmelLogo from '../components/auth/KISANMEL LOGO WHITE.png';
 import { PlanContext } from '../context/PlanContext';
+import { useAuth } from '../context/AuthContext';
 
 const CropRecommendationScreen = () => {
   const [recommendationData, setRecommendationData] = useState(null);
@@ -32,6 +33,7 @@ const CropRecommendationScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { addCrop, savedCrops } = React.useContext(PlanContext);
+  const { logout, user } = useAuth();
 
   // Sidebar nav
   const [activeItem, setActiveItem] = useState('crops');
@@ -39,7 +41,7 @@ const CropRecommendationScreen = () => {
   const navItems = [
     { id: 'dashboard', name: 'Dashboard', path: '/stage', Icon: Squares2X2Icon },
     { id: 'crops', name: 'Crop Suggestions', path: '/recommendations', Icon: SunIcon },
-    { id: 'market', name: 'Market Rates', path: '/stage/market', Icon: CurrencyRupeeIcon },
+    { id: 'market', name: 'Market Rates', path: '/market', Icon: CurrencyRupeeIcon },
     { id: 'iot', name: 'IoT Monitoring', path: '/stage/iot', Icon: CpuChipIcon },
     { id: 'training', name: 'Training & Guides', path: '/stage/training', Icon: BookOpenIcon },
     { id: 'support', name: 'Support', path: '/stage/support', Icon: LifebuoyIcon },
@@ -60,7 +62,7 @@ const CropRecommendationScreen = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    logout();
     navigate('/');
   };
 
@@ -161,7 +163,7 @@ const CropRecommendationScreen = () => {
           <div className="flex items-center space-x-3">
             <UserCircleIcon className="h-10 w-10 text-[#2f722f]" />
             <div>
-              <p className="font-medium text-[#1a1a1a]">Farmer Name</p>
+              <p className="font-medium text-[#1a1a1a]">{user?.name || 'Farmer'}</p>
               <p className="text-sm text-[#2f722f] cursor-pointer hover:text-[#46a05e] transition-colors">View Profile</p>
             </div>
           </div>
@@ -331,21 +333,21 @@ const CropRecommendationScreen = () => {
                     {/* Buttons area */}
                     <div className="flex-1 flex flex-col space-y-4">
                       <button
-                        onClick={() => navigate('/stage/market')}
+                        onClick={() => navigate('/market')}
                         className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white text-[#2f722f] text-sm font-medium border border-[#2f722f] rounded-2xl hover:bg-[#e6f4ea] transition"
                       >
                         <GlobeAltIcon className="h-4 w-4" />
                         Market Connect
                       </button>
                       <button
-                        onClick={() => navigate('/stage/prices')}
+                        onClick={() => navigate('/market')}
                         className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white text-[#2f722f] text-sm font-medium border border-[#2f722f] rounded-2xl hover:bg-[#e6f4ea] transition"
                       >
                         <CurrencyRupeeIcon className="h-4 w-4" />
                         Prices
                       </button>
                       <button
-                        onClick={() => navigate('/stage/contracts')}
+                        onClick={() => navigate('/market')}
                         className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white text-[#2f722f] text-sm font-medium border border-[#2f722f] rounded-2xl hover:bg-[#e6f4ea] transition"
                       >
                         <DocumentTextIcon className="h-4 w-4" />

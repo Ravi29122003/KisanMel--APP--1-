@@ -22,7 +22,7 @@ import {
   TrophyIcon,
   ShieldCheckIcon,
   ArrowRightIcon,
-  PhoneIcon,
+  PhoneIcon,                                  
   MapPinIcon,
   CheckCircleIcon,
   PlayIcon,
@@ -136,16 +136,11 @@ const HomePage = () => {
         <img
           src={HeroFarmland}
           alt="Modern Agriculture"
-          className="absolute inset-0 w-full h-full object-cover object-center brightness-50"
+          className="absolute inset-0 w-full h-full object-cover object-center"
         />
         
-        {/* Radial Overlay around Logo */}
-        <div className="absolute inset-0" style={{
-          background: 'radial-gradient(circle at center 40%, transparent 20%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.6) 100%)'
-        }}></div>
-        
-        {/* Clean Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-transparent"></div>
+        {/* Light overlay for better text readability */}
+        <div className="absolute inset-0 bg-white/10"></div>
 
         {/* Decorative Wave */}
         <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none rotate-180">

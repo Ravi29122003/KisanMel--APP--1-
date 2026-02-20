@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Polygon, useMap } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../../config';
 import * as turf from '@turf/turf';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -154,9 +155,9 @@ const FarmSetup = () => {
   const [formData, setFormData] = useState({
     pincode: '',
     area: '',
-    capitalInvestment: '',
-    labourCapacity: '',
-    irrigationFacility: 'Rain-fed',
+    capitalInvestment: 10000,
+    labourCapacity: 1,
+    irrigationFacility: 'Drip',
     cropCycle: '',
     location: null,
     plotCoordinates: []
@@ -172,7 +173,7 @@ const FarmSetup = () => {
   useEffect(() => {
     const fetchFarmDetails = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/v1/users/me');
+        const response = await axios.get(`${API_URL}/users/me`);
         if (response.data.data.user.farmDetails) {
           setFormData(prevData => ({
             ...prevData,
@@ -217,7 +218,7 @@ const FarmSetup = () => {
     setLoading(true);
 
     try {
-      await axios.patch('http://localhost:5000/api/v1/users/update-profile', formData);
+      await axios.patch(`${API_URL}/users/update-profile`, formData);
       navigate('/stage');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update farm details');
@@ -296,6 +297,11 @@ const FarmSetup = () => {
       value: 'Canal',
       label: 'Canal',
       description: 'Water supplied through channels'
+    },
+    {
+      value: 'Rain-fed',
+      label: 'Rain-fed',
+      description: 'Dependent on natural rainfall'
     }
   ];
 
@@ -733,7 +739,7 @@ const FarmSetup = () => {
       </div>
 
       {/* Custom Styles */}
-      <style jsx>{`
+      <style>{`
         .slider-modern::-webkit-slider-thumb {
           appearance: none;
           height: 20px;

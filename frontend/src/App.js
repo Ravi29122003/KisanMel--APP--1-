@@ -15,11 +15,12 @@ import Projects from './screens/Projects';
 import AboutUs from './screens/AboutUs';
 import Stage from './screens/Stage';
 import CultivationGuideScreen from './screens/CultivationGuideScreen';
+import MarketDashboard from './components/MarketDashboard';
 
 function App() {
   return (
-    <PlanProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <PlanProvider>
         <Router>
           <div className="min-h-screen bg-gray-50">
             <Routes>
@@ -73,11 +74,19 @@ function App() {
                   </PrivateRoute>
                 }
               />
+              <Route
+                path="/market"
+                element={
+                  <PrivateRoute>
+                    <MarketDashboard />
+                  </PrivateRoute>
+                }
+              />
             </Routes>
           </div>
         </Router>
-      </AuthProvider>
-    </PlanProvider>
+      </PlanProvider>
+    </AuthProvider>
   );
 }
 

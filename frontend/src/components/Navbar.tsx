@@ -39,6 +39,7 @@ const Navbar: React.FC<NavbarProps> = ({ isAuthenticated = false, onLogout }) =>
           <Link to="/about" className={linkClasses}>About Us</Link>
           <Link to="/services" className={linkClasses}>Services</Link>
           <Link to="/projects" className={linkClasses}>Projects</Link>
+          {isAuthenticated && <Link to="/market" className={linkClasses}>Market Connect</Link>}
           <Link to="/ideas" className={linkClasses}>Ideas</Link>
         </div>
 
@@ -97,6 +98,7 @@ const Navbar: React.FC<NavbarProps> = ({ isAuthenticated = false, onLogout }) =>
             <Link to="/about" className={linkClasses}>About Us</Link>
             <Link to="/services" className={linkClasses}>Services</Link>
             <Link to="/projects" className={linkClasses}>Projects</Link>
+            {isAuthenticated && <Link to="/market" className={linkClasses}>Market Connect</Link>}
             <Link to="/ideas" className={linkClasses}>Ideas</Link>
           </div>
         </div>

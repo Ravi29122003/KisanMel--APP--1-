@@ -1,7 +1,8 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -15,9 +16,15 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUser = async () => {
+  const logout = useCallback(() => {
+    localStorage.removeItem('token');
+    delete axios.defaults.headers.common['Authorization'];
+    setUser(null);
+  }, []);
+
+  const fetchUser = useCallback(async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/v1/users/me');
+      const response = await axios.get(`${API_URL}/users/me`);
       setUser(response.data.data.user);
     } catch (error) {
       console.error('Error fetching user:', error);
@@ -25,10 +32,9 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [logout]);
 
   useEffect(() => {
-    // Check if user is logged in
     const token = localStorage.getItem('token');
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -40,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (mobileNumber, password) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/v1/users/login', {
+      const response = await axios.post(`${API_URL}/users/login`, {
         mobileNumber,
         password
       });
@@ -59,7 +65,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (userData) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/v1/users/signup', userData);
+      const response = await axios.post(`${API_URL}/users/signup`, userData);
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -71,7 +77,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyOTP = async (mobileNumber, otp) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/v1/users/verify-otp', {
+      const response = await axios.post(`${API_URL}/users/verify-otp`, {
         mobileNumber,
         otp
       });
@@ -88,12 +94,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
-    setUser(null);
-  };
-
   const value = {
     user,
     loading,
@@ -108,4 +108,4 @@ export const AuthProvider = ({ children }) => {
       {!loading && children}
     </AuthContext.Provider>
   );
-}; 
+};
