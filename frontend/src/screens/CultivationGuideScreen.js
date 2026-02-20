@@ -3,6 +3,42 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
 import FarmLog from '../components/FarmLog';
 import SmartAlerts from '../components/SmartAlerts';
+import {
+  Squares2X2Icon,
+  SunIcon,
+  CurrencyRupeeIcon,
+  CpuChipIcon,
+  BookOpenIcon,
+  LifebuoyIcon,
+  ArrowLeftIcon,
+  CheckCircleIcon,
+  DocumentTextIcon,
+  VideoCameraIcon,
+  ClockIcon,
+  ExclamationTriangleIcon,
+  LightBulbIcon,
+  PlayIcon,
+  QuestionMarkCircleIcon,
+  ClipboardDocumentListIcon,
+  DevicePhoneMobileIcon,
+  ArrowPathIcon,
+  BanknotesIcon,
+  GlobeAltIcon,
+  BeakerIcon,
+  MagnifyingGlassIcon,
+  BugAntIcon,
+  WrenchScrewdriverIcon,
+  CloudIcon,
+  TruckIcon,
+  CalendarDaysIcon,
+  BuildingStorefrontIcon,
+  ChartBarSquareIcon,
+  MapIcon,
+  ArrowRightOnRectangleIcon,
+} from '@heroicons/react/24/outline';
+import { UserCircleIcon } from '@heroicons/react/24/solid';
+import kisanmelLogo from '../components/auth/KISANMEL LOGO WHITE.png';
+import { useAuth } from '../context/AuthContext';
 
 // Add custom styles for animations
 const customStyles = `
@@ -40,43 +76,6 @@ if (typeof document !== 'undefined') {
   styleSheet.textContent = customStyles;
   document.head.appendChild(styleSheet);
 }
-
-import {
-  Squares2X2Icon,
-  SunIcon,
-  CurrencyRupeeIcon,
-  CpuChipIcon,
-  BookOpenIcon,
-  LifebuoyIcon,
-  ArrowLeftIcon,
-  CheckCircleIcon,
-  DocumentTextIcon,
-  VideoCameraIcon,
-  ClockIcon,
-  ExclamationTriangleIcon,
-  LightBulbIcon,
-  PlayIcon,
-  QuestionMarkCircleIcon,
-  ClipboardDocumentListIcon,
-  DevicePhoneMobileIcon,
-  ArrowPathIcon,
-  BanknotesIcon,
-  GlobeAltIcon,
-  BeakerIcon,
-  MagnifyingGlassIcon,
-  BugAntIcon,
-  WrenchScrewdriverIcon,
-  CloudIcon,
-  TruckIcon,
-  CalendarDaysIcon,
-  BuildingStorefrontIcon,
-  ChartBarSquareIcon,
-  MapIcon,
-  ArrowRightOnRectangleIcon,
-} from '@heroicons/react/24/outline';
-import { UserCircleIcon } from '@heroicons/react/24/solid';
-import kisanmelLogo from '../components/auth/KISANMEL LOGO WHITE.png';
-import { useAuth } from '../context/AuthContext';
 
 const CultivationGuideScreen = () => {
   const navigate = useNavigate();
