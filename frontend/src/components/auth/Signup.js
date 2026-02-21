@@ -38,9 +38,7 @@ const Signup = () => {
     try {
       const result = await signup(formData);
       if (result.success) {
-        navigate('/verify-otp', { 
-          state: { mobileNumber: formData.mobileNumber }
-        });
+        navigate('/stage');
       } else {
         setError(result.message);
       }

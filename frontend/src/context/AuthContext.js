@@ -66,6 +66,10 @@ export const AuthProvider = ({ children }) => {
   const signup = async (userData) => {
     try {
       const response = await axios.post(`${API_URL}/users/signup`, userData);
+      const { token, data } = response.data;
+      localStorage.setItem('token', token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      setUser(data.user);
       return { success: true, data: response.data };
     } catch (error) {
       return {
@@ -75,31 +79,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const verifyOTP = async (mobileNumber, otp) => {
-    try {
-      const response = await axios.post(`${API_URL}/users/verify-otp`, {
-        mobileNumber,
-        otp
-      });
-      const { token, data } = response.data;
-      localStorage.setItem('token', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser(data.user);
-      return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || 'OTP verification failed'
-      };
-    }
-  };
-
   const value = {
     user,
     loading,
     login,
     signup,
-    verifyOTP,
     logout
   };
 

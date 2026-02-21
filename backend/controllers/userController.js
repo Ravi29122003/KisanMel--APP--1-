@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 const Farmer = require('../models/farmerModel');
-const { sendOTP } = require('../services/otpService');
 require('dotenv').config();
 
 // Generate JWT token
@@ -13,13 +12,39 @@ const signToken = (id) => {
     });
 };
 
-// Signup
+// Signup — validate name, mobile, password; hash password (via model pre-save); save; return JWT
 exports.signup = async (req, res) => {
     try {
         const { name, mobileNumber, password, email } = req.body;
 
+        // Validate required fields
+        if (!name || !name.trim()) {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'Name is required'
+            });
+        }
+        if (!mobileNumber || !mobileNumber.toString().trim()) {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'Mobile number is required'
+            });
+        }
+        if (!password || typeof password !== 'string') {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'Password is required'
+            });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'Password must be at least 6 characters'
+            });
+        }
+
         // Check if user already exists
-        const existingUser = await Farmer.findOne({ mobileNumber });
+        const existingUser = await Farmer.findOne({ mobileNumber: mobileNumber.toString().trim() });
         if (existingUser) {
             return res.status(400).json({
                 status: 'fail',
@@ -27,70 +52,25 @@ exports.signup = async (req, res) => {
             });
         }
 
-        // Generate OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-
-        // Create new user
+        // Create user (password is hashed by farmerModel pre-save hook)
         const newUser = await Farmer.create({
-            name,
-            mobileNumber,
+            name: name.trim(),
+            mobileNumber: mobileNumber.toString().trim(),
             password,
-            email,
-            otp,
-            otpExpires
+            ...(email && email.trim() ? { email: email.trim() } : {})
         });
 
-        // Send OTP
-        await sendOTP(mobileNumber, otp);
+        const token = signToken(newUser._id);
 
         res.status(201).json({
-            status: 'success',
-            message: 'OTP sent successfully'
-        });
-    } catch (error) {
-        res.status(400).json({
-            status: 'fail',
-            message: error.message
-        });
-    }
-};
-
-// Verify OTP
-exports.verifyOTP = async (req, res) => {
-    try {
-        const { mobileNumber, otp } = req.body;
-
-        const user = await Farmer.findOne({
-            mobileNumber,
-            otp,
-            otpExpires: { $gt: Date.now() }
-        });
-
-        if (!user) {
-            return res.status(400).json({
-                status: 'fail',
-                message: 'Invalid or expired OTP'
-            });
-        }
-
-        // Clear OTP fields
-        user.otp = undefined;
-        user.otpExpires = undefined;
-        await user.save();
-
-        // Generate token
-        const token = signToken(user._id);
-
-        res.status(200).json({
             status: 'success',
             token,
             data: {
                 user: {
-                    id: user._id,
-                    name: user.name,
-                    mobileNumber: user.mobileNumber,
-                    email: user.email
+                    id: newUser._id,
+                    name: newUser.name,
+                    mobileNumber: newUser.mobileNumber,
+                    email: newUser.email
                 }
             }
         });
