@@ -42,6 +42,8 @@ const FitBounds = ({ positions }) => {
 
 // Farm Overview Component
 const FarmOverview = ({ farmData }) => {
+  const navigate = useNavigate();
+
   if (!farmData) {
     return null;
   }
@@ -82,8 +84,15 @@ const FarmOverview = ({ farmData }) => {
               />
             </MapContainer>
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-50">
+            <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 gap-3 p-4">
               <span className="text-gray-400">No farm plot drawn yet</span>
+              <button
+                type="button"
+                onClick={() => navigate('/farm-setup')}
+                className="px-4 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+              >
+                Set Up Your Farm
+              </button>
             </div>
           )}
         </div>
