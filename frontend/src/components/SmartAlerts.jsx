@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 import {
   ExclamationTriangleIcon,
   CloudIcon,
@@ -38,7 +39,7 @@ const SmartAlerts = ({ cropName }) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/v1/alerts', {
+      const response = await axios.get(`${API_URL}/alerts`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -56,7 +57,7 @@ const SmartAlerts = ({ cropName }) => {
   const fetchAlertStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/v1/alerts/stats', {
+      const response = await axios.get(`${API_URL}/alerts/stats`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -71,7 +72,7 @@ const SmartAlerts = ({ cropName }) => {
   const generateNewAlerts = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/v1/alerts/generate', {}, {
+      await axios.post(`${API_URL}/alerts/generate`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -86,7 +87,7 @@ const SmartAlerts = ({ cropName }) => {
   const markAsRead = async (alertId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.patch(`http://localhost:5000/api/v1/alerts/${alertId}/read`, {}, {
+      await axios.patch(`${API_URL}/alerts/${alertId}/read`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -102,7 +103,7 @@ const SmartAlerts = ({ cropName }) => {
   const dismissAlert = async (alertId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.patch(`http://localhost:5000/api/v1/alerts/${alertId}/dismiss`, {}, {
+      await axios.patch(`${API_URL}/alerts/${alertId}/dismiss`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       

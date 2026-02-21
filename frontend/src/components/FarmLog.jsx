@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 import {
   DocumentTextIcon,
   CheckCircleIcon,
@@ -32,7 +33,7 @@ const FarmLog = ({ cropName, isVisible = true }) => {
     
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:5000/api/v1/farm-logs?cropName=${cropName}&limit=10`);
+      const response = await axios.get(`${API_URL}/farm-logs?cropName=${cropName}&limit=10`);
       setLogs(response.data.data.logs);
     } catch (error) {
       console.error('Error fetching farm logs:', error);
@@ -46,7 +47,7 @@ const FarmLog = ({ cropName, isVisible = true }) => {
     if (!isVisible) return;
     
     try {
-      const response = await axios.get('http://localhost:5000/api/v1/farm-logs/today-summary');
+      const response = await axios.get(`${API_URL}/farm-logs/today-summary`);
       setTodaySummary(response.data.data.summary);
     } catch (error) {
       console.error('Error fetching today\'s summary:', error);
@@ -81,7 +82,7 @@ const FarmLog = ({ cropName, isVisible = true }) => {
         }
       };
 
-      await axios.post('http://localhost:5000/api/v1/farm-logs', payload);
+      await axios.post(`${API_URL}/farm-logs`, payload);
       
       // Reset form
       setObservationData({

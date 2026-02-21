@@ -5,6 +5,10 @@ import { useAuth } from '../context/AuthContext';
 import { PlanContext } from '../context/PlanContext';
 import KisanMelLogo from '../components/auth/KISANMEL LOGO WHITE.png';
 import axios from 'axios';
+import { API_URL } from '../config';
+
+// Market routes are under /api/market (not /api/v1)
+const API_ORIGIN = API_URL.replace(/\/api\/v1\/?$/, '');
 
 const MarketDashboard = () => {
   const { logout, user } = useAuth();
@@ -132,7 +136,7 @@ const MarketDashboard = () => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        const response = await axios.get('http://localhost:5000/api/v1/users/me', {
+        const response = await axios.get(`${API_URL}/users/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (response.data.data.user.farmDetails) {
@@ -151,14 +155,12 @@ const MarketDashboard = () => {
   const fetchMarketOffers = async () => {
     try {
       setLoading(true);
-      const API_BASE_URL = 'http://localhost:5000';
-      
       const params = new URLSearchParams();
       params.append('crop', selectedCrop || (farmData?.crops?.[0]) || 'Rice');
       params.append('type', selectedMarketType || '');
       params.append('maxDistance', maxDistance || '100');
       
-      const url = `${API_BASE_URL}/api/market/dashboard?${params}`;
+      const url = `${API_ORIGIN}/api/market/dashboard?${params}`;
       console.log('Fetching from:', url);
       
       const response = await fetch(url);
@@ -188,9 +190,7 @@ const MarketDashboard = () => {
 
     try {
       setOffersSearchLoading(true);
-      const API_BASE_URL = 'http://localhost:5000';
-      
-      const url = `${API_BASE_URL}/api/market/contracts/all?page=${page}&limit=3`;
+      const url = `${API_ORIGIN}/api/market/contracts/all?page=${page}&limit=3`;
       console.log('Searching contracts for:', cropName, 'page:', page);
       
       const response = await axios.post(url, {
@@ -222,15 +222,13 @@ const MarketDashboard = () => {
   const fetchMarketOffersWithSearch = async () => {
     try {
       setOffersSearchLoading(true); // Use separate loading state for search
-      const API_BASE_URL = 'http://localhost:5000';
-      
       // When searching, fetch all offers without crop restriction
       const params = new URLSearchParams();
       params.append('type', selectedMarketType || '');
       params.append('maxDistance', maxDistance || '100');
       // Don't set crop parameter to get all crops for search
       
-      const url = `${API_BASE_URL}/api/market/dashboard?${params}`;
+      const url = `${API_ORIGIN}/api/market/dashboard?${params}`;
       console.log('Fetching search results from:', url);
       
       const response = await fetch(url);
@@ -255,9 +253,7 @@ const MarketDashboard = () => {
       setContractsLoading(true);
       setContractsError(null);
       
-      const API_BASE_URL = 'http://localhost:5000';
-      
-      const response = await axios.post(`${API_BASE_URL}/api/market/contracts`, {
+      const response = await axios.post(`${API_ORIGIN}/api/market/contracts`, {
         crops: savedCrops.map(crop => crop.name)
       });
 
@@ -282,9 +278,7 @@ const MarketDashboard = () => {
       setSearchLoading(true);
       setSearchError(null);
       
-      const API_BASE_URL = 'http://localhost:5000';
-      
-      const response = await axios.post(`${API_BASE_URL}/api/market/search`, {
+      const response = await axios.post(`${API_ORIGIN}/api/market/search`, {
         cropName: cropName.trim()
       });
 

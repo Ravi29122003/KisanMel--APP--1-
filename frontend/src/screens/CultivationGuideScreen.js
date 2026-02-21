@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../config';
 import FarmLog from '../components/FarmLog';
 import SmartAlerts from '../components/SmartAlerts';
 import {
@@ -100,7 +101,7 @@ const CultivationGuideScreen = () => {
     const fetchCropData = async () => {
       try {
         // Try to fetch crop data from backend
-        const response = await axios.get(`http://localhost:5000/api/crops/search?crop_name=${cropName || 'Rice'}`);
+        const response = await axios.get(`${API_URL}/crops/search?crop_name=${cropName || 'Rice'}`);
         if (response.data && response.data.length > 0) {
           const crop = response.data[0];
           const avgDuration = crop.crop_duration_days_min && crop.crop_duration_days_max 
@@ -332,7 +333,7 @@ const CultivationGuideScreen = () => {
   useEffect(() => {
     const fetchFarmData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/v1/users/me');
+        const response = await axios.get(`${API_URL}/users/me`);
         if (response.data.data.user.farmDetails) {
           setFarmData(response.data.data.user.farmDetails);
         }
@@ -402,7 +403,7 @@ const CultivationGuideScreen = () => {
         const task = todaysTasks.find(t => t.id === taskId);
         
         if (task) {
-          await axios.post('http://localhost:5000/api/v1/farm-logs/task-completion', {
+          await axios.post(`${API_URL}/farm-logs/task-completion`, {
             taskId: task.id,
             taskName: task.task,
             stageName: currentStageName,

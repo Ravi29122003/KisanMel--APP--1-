@@ -6,6 +6,7 @@ import { MapContainer, TileLayer, Polygon, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import axios from 'axios';
+import { API_URL } from '../config';
 import {
   Squares2X2Icon,
   SunIcon,
@@ -150,7 +151,7 @@ const Stage = () => {
   useEffect(() => {
     const fetchFarmData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/v1/users/me');
+        const response = await axios.get(`${API_URL}/users/me`);
         if (response.data.data.user.farmDetails) {
           const details = response.data.data.user.farmDetails;
           setFarmData(details);
